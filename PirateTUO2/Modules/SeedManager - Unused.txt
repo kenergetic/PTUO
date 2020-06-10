@@ -1,0 +1,694 @@
+﻿
+        /// <summary>
+        /// Build a revenge deck
+        /// </summary>
+        private static List<Card> GetRevengeDeck(ConcurrentDictionary<Card, int> playerCards)
+        {
+            var seedDeck = new List<Card>();
+            int cardsInDeck = 0;
+            string currentSkill = "";
+            Card currentCard;
+            int currentCardCount = 0;
+
+            try
+            {
+                var powerCards = CardManager.GetPlayerCardsByPower(playerCards);
+
+                // Set Commander
+                seedDeck.Add(CardManager.GetBestCommander(playerCards));
+
+                var skillCards = CardManager.GetPlayerCardsBySkills(playerCards, new List<string> { "Revenge" });
+
+                // 2 power cards
+                foreach (var c in powerCards.OrderByDescending(x => x.Key.Power))
+                {
+                    for (int i = 0; i < c.Value; i++)
+                    {
+                        currentCard = c.Key;
+                        currentCardCount = c.Value;
+
+                        seedDeck.Add(currentCard);
+
+                        // Remove this card from each card list
+                        if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                        if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                        cardsInDeck++;
+                        if (cardsInDeck >= 2) break;
+                    }
+                    if (cardsInDeck >= 2) break;
+                }
+
+                // 4 revenge cards
+                currentSkill = "Revenge";
+                foreach (var c in skillCards.OrderByDescending(x => x.Key.Power))
+                {
+                    for (int i = 0; i < c.Value; i++)
+                    {
+                        currentCard = c.Key;
+                        currentCardCount = c.Value;
+                        if (currentCardCount <= 0) continue;
+                        if (c.Key.s1.id != currentSkill && c.Key.s2.id != currentSkill && c.Key.s3.id != currentSkill) continue;
+                        if (currentCard.CardType == CardType.Structure.ToString()) continue;
+
+                        seedDeck.Add(currentCard);
+
+                        // Remove this card from each card list
+                        if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                        if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                        cardsInDeck++;
+                        if (cardsInDeck >= 6) break;
+                    }
+                    if (cardsInDeck >= 6) break;
+                }
+
+                // add power cards to fill out the deck
+                foreach (var c in powerCards.OrderByDescending(c => c.Key.Power))
+                {
+                    for (int i = 0; i < c.Value; i++)
+                    {
+                        currentCard = c.Key;
+                        currentCardCount = c.Value;
+                        if (currentCardCount <= 0) continue;
+                        seedDeck.Add(currentCard);
+
+                        // Remove this card from each card list
+                        if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+
+                        cardsInDeck++;
+                        if (cardsInDeck >= 7) break;
+                    }
+                    if (cardsInDeck >= 7) break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception on GetRevengeDeck(): " + ex);
+            }
+
+
+            return seedDeck;
+        }
+
+    /// <summary>
+    /// Build a sunder deck - depends on Cassius' nexus
+    /// </summary>
+    private static List<Card> GetSunderDeck(ConcurrentDictionary<Card, int> playerCards)
+    {
+        var seedDeck = new List<Card>();
+        var cardsInDeck = 0;
+        var currentSkill = "";
+        Card currentCard;
+        var currentCardCount = 0;
+        var powerCards = CardManager.GetPlayerCardsByPower(playerCards);
+
+        // Set Commander
+        seedDeck.Add(CardManager.GetBestCommander(playerCards));
+
+        var skillCards = CardManager.GetPlayerCardsBySkills(playerCards, new List<string> { "Weaken", "Sunder" });
+
+        // Add Cassius' nexus
+        seedDeck.Add(CardManager.GetById(50263)); // Cassius' Nexus
+
+
+        // 2 power cards
+        foreach (var c in powerCards.OrderByDescending(c => c.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 3) break;
+            }
+            if (cardsInDeck >= 3) break;
+        }
+
+        // 3 weaken cards
+        currentSkill = "Weaken";
+        foreach (var c in skillCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+
+                if (c.Key.s1.id != currentSkill && c.Key.s2.id != currentSkill && c.Key.s3.id != currentSkill) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 6) break;
+            }
+            if (cardsInDeck >= 6) break;
+        }
+
+        // 2 power cards
+        foreach (var c in powerCards.OrderByDescending(c => c.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 8) break;
+            }
+            if (cardsInDeck >= 8) break;
+        }
+
+        return seedDeck;
+    }
+
+    /// <summary>
+    /// Build a coa deck - jam heavy
+    /// </summary>
+    private static List<Card> GetCoaDeck(ConcurrentDictionary<Card, int> playerCards)
+    {
+        var seedDeck = new List<Card>();
+        var cardsInDeck = 0;
+        var currentSkill = "";
+        Card currentCard;
+        var currentCardCount = 0;
+        var powerCards = CardManager.GetPlayerCardsByPower(playerCards);
+
+        // Set Commander
+        seedDeck.Add(CardManager.GetBestCommander(playerCards, strategy: "coalition"));
+
+        var skillCards = CardManager.GetPlayerCardsBySkills(playerCards, new List<string> { "Coalition", "Jam" });
+
+
+        // 2 Coalition cards
+        currentSkill = "Coalition";
+        foreach (var c in skillCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                if (c.Key.s1.id != currentSkill && c.Key.s2.id != currentSkill && c.Key.s3.id != currentSkill) continue;
+                if (currentCard.CardType == CardType.Structure.ToString()) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 2) break;
+            }
+            if (cardsInDeck >= 2) break;
+        }
+
+
+        // 2 power cards
+        foreach (var c in powerCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 4) break;
+            }
+            if (cardsInDeck >= 4) break;
+        }
+
+        // 2 jam - on-play, or 0-1 delay
+        currentSkill = "Jam";
+        foreach (var c in skillCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+
+                // Check for nice jams
+                bool addThisCard = false;
+
+                if (currentCard.s1.id == "Jam" && currentCard.s1.trigger == "Play") addThisCard = true;
+                else if (currentCard.s2.id == "Jam" && currentCard.s2.trigger == "Play") addThisCard = true;
+                else if (currentCard.s3.id == "Jam" && currentCard.s3.trigger == "Play") addThisCard = true;
+                else if (currentCard.Delay <= 1) addThisCard = true;
+
+                if (!addThisCard) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 6) break;
+            }
+            if (cardsInDeck >= 6) break;
+        }
+
+        // add power cards to fill out the deck
+        foreach (var c in powerCards.OrderByDescending(c => c.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 7) break;
+            }
+            if (cardsInDeck >= 7) break;
+        }
+
+        return seedDeck;
+    }
+
+    /// <summary>
+    /// Build a rupture deck
+    /// </summary>
+    private static List<Card> GetRuptureDeck(ConcurrentDictionary<Card, int> playerCards)
+    {
+        var seedDeck = new List<Card>();
+        var cardsInDeck = 0;
+        var currentSkill = "";
+        Card currentCard;
+        var currentCardCount = 0;
+        var powerCards = CardManager.GetPlayerCardsByPower(playerCards);
+
+        // Set Commander
+        seedDeck.Add(CardManager.GetBestCommander(playerCards, strategy: "rupture"));
+
+        var skillCards = CardManager.GetPlayerCardsBySkills(playerCards, new List<string> { "Pierce" });
+        var evolveCards = CardManager.GetPlayerCardsBySkillEvolve(playerCards, "Rupture");
+
+
+        // 1 evolve rupture tower
+        currentSkill = "Evolve";
+        foreach (var c in evolveCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                if (c.Key.s1.id != currentSkill && c.Key.s2.id != currentSkill && c.Key.s3.id != currentSkill) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (evolveCards.ContainsKey(currentCard)) evolveCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 1) break;
+            }
+            if (cardsInDeck >= 1) break;
+        }
+
+        // 2 Pierce cards
+        currentSkill = "Pierce";
+        foreach (var c in skillCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                if (c.Key.s1.id != currentSkill && c.Key.s2.id != currentSkill && c.Key.s3.id != currentSkill) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 3) break;
+            }
+            if (cardsInDeck >= 3) break;
+        }
+
+        // add fast power cards to fill out the deck
+        if (cardsInDeck <= 6)
+        {
+            foreach (var c in powerCards.OrderByDescending(c => c.Key.Power))
+            {
+                for (int i = 0; i < c.Value; i++)
+                {
+                    currentCard = c.Key;
+                    currentCardCount = c.Value;
+                    if (currentCardCount <= 0) continue;
+                    if (currentCard.Delay <= 2) continue;
+                    seedDeck.Add(currentCard);
+
+                    // Remove this card from each card list
+                    if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+
+                    cardsInDeck++;
+                    if (cardsInDeck >= 6) break;
+                }
+                if (cardsInDeck >= 6) break;
+            }
+        }
+
+        // 1 evolve rupture tower
+        currentSkill = "Evolve";
+        foreach (var c in evolveCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                if (c.Key.s1.id != currentSkill && c.Key.s2.id != currentSkill && c.Key.s3.id != currentSkill) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (evolveCards.ContainsKey(currentCard)) evolveCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 4) break;
+            }
+            if (cardsInDeck >= 4) break;
+        }
+
+
+        return seedDeck;
+    }
+
+    /// <summary>
+    /// Build a counter deck
+    /// </summary>
+    private static List<Card> GetEntrapDeck(ConcurrentDictionary<Card, int> playerCards)
+    {
+        var seedDeck = new List<Card>();
+        var cardsInDeck = 0;
+        var currentSkill = "";
+        Card currentCard;
+        var currentCardCount = 0;
+        var powerCards = CardManager.GetPlayerCardsByPower(playerCards);
+
+        // Set Commander
+        seedDeck.Add(CardManager.GetBestCommander(playerCards));
+
+        var skillCards = CardManager.GetPlayerCardsBySkills(playerCards, new List<string> { "Counter", "Entrap" });
+
+
+        // 2 counter cards
+        currentSkill = "Counter";
+        foreach (var c in skillCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+
+                if (c.Key.s1.id != currentSkill && c.Key.s2.id != currentSkill && c.Key.s3.id != currentSkill) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 2) break;
+            }
+            if (cardsInDeck >= 2) break;
+        }
+
+        // 2 power cards
+        foreach (var c in powerCards.OrderByDescending(c => c.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 4) break;
+            }
+            if (cardsInDeck >= 4) break;
+        }
+
+        // 2 Entrap cards
+        currentSkill = "Entrap";
+        foreach (var c in skillCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                if (c.Key.s1.id != currentSkill && c.Key.s2.id != currentSkill && c.Key.s3.id != currentSkill) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 6) break;
+            }
+            if (cardsInDeck >= 6) break;
+        }
+
+
+        // 1+ power cards
+        foreach (var c in powerCards.OrderByDescending(c => c.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 7) break;
+            }
+            if (cardsInDeck >= 7) break;
+        }
+
+        return seedDeck;
+    }
+
+    /// <summary>
+    /// Build a fast jam/tempo deck
+    /// </summary>
+    private static List<Card> GetMortarDeck(ConcurrentDictionary<Card, int> playerCards)
+    {
+        var seedDeck = new List<Card>();
+        var cardsInDeck = 0;
+        var currentSkill = "";
+        Card currentCard;
+        var currentCardCount = 0;
+        var powerCards = CardManager.GetPlayerCardsByPower(playerCards);
+
+        // Set Commander
+        seedDeck.Add(CardManager.GetBestCommander(playerCards, strategy: "mortar"));
+
+        var skillCards = CardManager.GetPlayerCardsBySkills(playerCards, new List<string> { "Mortar" });
+
+
+        // 1 mortar card
+        currentSkill = "Mortar";
+        foreach (var c in skillCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+
+                if (currentCard.s1.id != currentSkill && currentCard.s2.id != currentSkill && currentCard.s3.id != currentSkill) continue;
+                if (currentCard.Delay > 1) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 1) break;
+            }
+            if (cardsInDeck >= 1) break;
+        }
+
+        // 1 power card
+        foreach (var c in powerCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 2) break;
+            }
+            if (cardsInDeck >= 2) break;
+        }
+
+
+        // 1 mortar card
+        currentSkill = "Mortar";
+        foreach (var c in skillCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+
+                if (currentCard.s1.id != currentSkill && currentCard.s2.id != currentSkill && currentCard.s3.id != currentSkill) continue;
+                if (currentCard.Delay > 1) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 3) break;
+            }
+            if (cardsInDeck >= 3) break;
+        }
+
+        // 3+ power cards to fill out the deck
+        foreach (var c in powerCards.OrderByDescending(c => c.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 6) break;
+            }
+            if (cardsInDeck >= 6) break;
+        }
+
+        return seedDeck;
+    }
+
+
+    /// <summary>
+    /// Build a Hunt deck 
+    /// </summary>
+    private static List<Card> GetHuntDeck(ConcurrentDictionary<Card, int> playerCards)
+    {
+        var seedDeck = new List<Card>();
+        var cardsInDeck = 0;
+        var currentSkill = "";
+        Card currentCard;
+        var currentCardCount = 0;
+        var powerCards = CardManager.GetPlayerCardsByPower(playerCards);
+
+        // Set Commander
+        seedDeck.Add(CardManager.GetBestCommander(playerCards, strategy: "hunt"));
+
+        var skillCards = CardManager.GetPlayerCardsBySkills(playerCards, new List<string> { "Hunt" });
+
+
+        // 4 Hunt cards
+        currentSkill = "Hunt";
+        foreach (var c in skillCards.OrderByDescending(x => x.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                if (c.Key.s1.id != currentSkill && c.Key.s2.id != currentSkill && c.Key.s3.id != currentSkill) continue;
+
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+                if (skillCards.ContainsKey(currentCard)) skillCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 4) break;
+            }
+            if (cardsInDeck >= 4) break;
+        }
+
+        // add power cards to fill out the deck
+        foreach (var c in powerCards.OrderByDescending(c => c.Key.Power))
+        {
+            for (int i = 0; i < c.Value; i++)
+            {
+                currentCard = c.Key;
+                currentCardCount = c.Value;
+                if (currentCardCount <= 0) continue;
+                seedDeck.Add(currentCard);
+
+                // Remove this card from each card list
+                if (powerCards.ContainsKey(currentCard)) powerCards[currentCard]--;
+
+                cardsInDeck++;
+                if (cardsInDeck >= 7) break;
+            }
+            if (cardsInDeck >= 7) break;
+        }
+
+        return seedDeck;
+    }
